@@ -3,7 +3,15 @@
     "version": "1.0.0",
     "description": "Aplicação desenvolvida em nodejs com o intuito de enviar mensagens usando o bot do discord.",
     "main": "index.js",
-    "dependencies": {},
+    "dependencies": {
+        "@discordjs/rest": "0.1.0-canary.0",
+        "@typeit/discord": "^4.0.10",
+        "discord-api-types": "^0.23.1",
+        "discord.js": "^13.1.0",
+        "dotenv": "^10.0.0",
+        "nodemon": "^2.0.12",
+        "ts-node": "^10.2.1"
+    },
     "devDependencies": {
         "@commitlint/cli": "^13.1.0",
         "@commitlint/config-conventional": "^13.1.0",
@@ -22,7 +30,6 @@
     "scripts": {
         "prepare": "husky install",
         "commit": "git-cz",
-
         "build": "tsc",
         "start:dev": "nodemon ./src/index.ts"
     },
