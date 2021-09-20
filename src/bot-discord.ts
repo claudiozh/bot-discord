@@ -37,8 +37,13 @@ export default class BotDiscord {
     });
   }
 
-  private static login(token: string) {
-    this.client.login(token);
+  private static async login(token: string) {
+    try {
+      await this.client.login(token);
+      console.log('Login efetuado com sucesso');
+    } catch (error) {
+      console.log('Falha ao efetuar login: ', error.message);
+    }
   }
 
   private static listenEvents() {
