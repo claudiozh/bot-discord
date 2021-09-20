@@ -1,5 +1,3 @@
 #!/bin/bash
 
-docker run --rm -it --name bot-discord \
--v $(pwd):/app \
-node:16 bash
+docker run --rm -it -v $(pwd):/app bot-discord bash
