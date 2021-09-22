@@ -2,93 +2,200 @@ import {
   Client, Intents, Message, TextChannel,
 } from 'discord.js';
 
-interface StartParams {
-  tokenBot: string;
-  channelId: string;
-}
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { REST } from '@discordjs/rest';
+import { Routes } from 'discord-api-types/v9';
 
-export default class BotDiscord {
-  private static client: Client;
+import {
+  PrintErrorParams,
+  RegisterCommands,
+  ReplyMessageByChannel,
+  ReplyMessageCommnad,
+  SendFileByChannel,
+  SendMessageByChannel,
+} from './interfaces/index';
 
-  private static channel: TextChannel;
+import {
+  OnCommand,
+  OnMessageCreateType,
+  OnMessageDeleteType,
+  OnMessageUpdateType,
+} from './types';
 
-  private static channelId: string;
+export default class AppDiscord {
+  private client: Client;
 
-  static start(params: StartParams) {
-    const { tokenBot, channelId } = params;
+  private tokenBot: string;
 
-    this.newClient();
-    this.onReady(() => this.setInfoChannel(channelId));
-    this.login(tokenBot);
-  }
-
-  private static newClient(): Client {
+  constructor() {
     this.client = new Client({
       intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
     });
-
-    return this.client;
   }
 
-  private static onReady(fncallback: () => void) {
-    this.client.on('ready', () => {
-      this.listenEvents();
-      fncallback();
-    });
-  }
-
-  private static async login(token: string) {
+  async login(tokenBot: string): Promise<boolean> {
     try {
-      await this.client.login(token);
-      console.log('Login efetuado com sucesso');
+      await this.client.login(tokenBot);
+      this.tokenBot = tokenBot;
+      return true;
     } catch (error) {
-      console.log('Falha ao efetuar login: ', error.message);
+      this.printError({
+        message: 'Falha ao realizar login',
+        originalMessage: error.message,
+        stack: error.stack,
+      });
+
+      return false;
     }
   }
 
-  private static listenEvents() {
-    this.onMessageCreate();
-    this.onMessageDelete();
-    this.onMessageUpdate();
+  onReady(fnCallback: () => void): void {
+    this.client.on('ready', () => {
+      fnCallback();
+    });
   }
 
-  private static setInfoChannel(channelId: string) {
-    this.channelId = channelId;
-    this.channel = <TextChannel> this.client.channels.cache.get(this.channelId);
-  }
-
-  private static onMessageCreate() {
+  onMessageCreate(fnCallback: OnMessageCreateType): void {
     this.client.on('messageCreate', (message: Message) => {
-      console.log('Message created', message.content);
-
-      switch (message.content) {
-        case 'ping':
-          this.sendMessageText('Pong');
-          break;
-
-        default:
-      }
+      fnCallback(message);
     });
   }
 
-  private static onMessageUpdate() {
+  onMessageUpdate(fnCallback: OnMessageUpdateType): void {
     this.client.on('messageUpdate', (oldMessage: Message, newMessage: Message) => {
-      console.log('Old message updated', oldMessage.content);
-      console.log('New message updated', newMessage.content);
+      fnCallback(oldMessage, newMessage);
     });
   }
 
-  private static onMessageDelete() {
+  onMessageDelete(fnCallback: OnMessageDeleteType): void {
     this.client.on('messageDelete', (message: Message) => {
-      console.log('Message deleted', message.content);
+      fnCallback(message);
     });
   }
 
-  static async sendMessageText(message: string): Promise<Message | null> {
-    if (this.channel) {
-      await this.channel.sendTyping();
-      return this.channel.send(message);
+  async sendMessageByChannel(params: SendMessageByChannel): Promise<Message | null> {
+    try {
+      const { channelId, message, pathsFiles } = params;
+      const channel = this.getChannelById(channelId);
+      await channel.sendTyping();
+
+      return await channel.send({
+        content: message,
+        files: pathsFiles,
+      });
+    } catch (error) {
+      this.printError({
+        message: 'Falha ao enviar mensagem',
+        originalMessage: error.message,
+        stack: error.stack,
+      });
+      return null;
     }
-    return null;
+  }
+
+  async sendFileByChannel(params: SendFileByChannel): Promise<Message|null> {
+    try {
+      const { channelId, pathFile } = params;
+      const channel = this.getChannelById(channelId);
+      await channel.sendTyping();
+
+      return await channel.send({
+        files: [pathFile],
+      });
+    } catch (error) {
+      this.printError({
+        message: 'Falha ao enviar midia',
+        originalMessage: error.message,
+        stack: error.stack,
+      });
+      return null;
+    }
+  }
+
+  async replyMessage(params: ReplyMessageByChannel): Promise<Message | null> {
+    try {
+      const { quoteMessage, message, pathsFiles } = params;
+
+      return await quoteMessage.reply({
+        content: message,
+        files: pathsFiles,
+      });
+    } catch (error) {
+      this.printError({
+        message: 'Falha ao responder mensagem',
+        originalMessage: error.message,
+        stack: error.stack,
+      });
+      return null;
+    }
+  }
+
+  async replyMessageCommnad(params: ReplyMessageCommnad): Promise<void> {
+    try {
+      const { message, pathsFiles, interaction } = params;
+
+      await interaction.reply({
+        content: message,
+        files: pathsFiles,
+      });
+    } catch (error) {
+      this.printError({
+        message: 'Falha ao responder mensagem de comando.',
+        originalMessage: error.message,
+        stack: error.stack,
+      });
+    }
+  }
+
+  async registerCommands(params: RegisterCommands): Promise<boolean> {
+    const { guildId, clientId, commands } = params;
+
+    const commandsBuilder = commands.map(({ name, description }) => new SlashCommandBuilder()
+      .setName(name.replace(/\s/g, ''))
+      .setDescription(description)
+      .toJSON());
+
+    const rest = new REST({ version: '9' }).setToken(this.tokenBot);
+
+    try {
+      await rest.put(
+        Routes.applicationGuildCommands(clientId, guildId),
+        { body: commandsBuilder },
+      );
+      return true;
+    } catch (error) {
+      this.printError({
+        message: 'Falha ao registrar commando',
+        originalMessage: error.message,
+        stack: error.stack,
+      });
+      return false;
+    }
+  }
+
+  async onCommand(fnCallback: OnCommand) {
+    try {
+      this.client.on('interactionCreate', async (interaction) => {
+        if (!interaction.isCommand()) return;
+
+        const { commandName } = interaction;
+
+        fnCallback(interaction, commandName);
+      });
+    } catch (error) {
+      this.printError({
+        message: 'Falha ao interagir via comando',
+        originalMessage: error.message,
+        stack: error.stack,
+      });
+    }
+  }
+
+  getChannelById(channelId: string): TextChannel | null {
+    return <TextChannel> this.client?.channels?.cache?.get(channelId) || null;
+  }
+
+  private printError(params: PrintErrorParams): void {
+    console.error({ ...params });
   }
 }

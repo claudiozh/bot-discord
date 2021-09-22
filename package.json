@@ -4,7 +4,8 @@
     "description": "Aplicação desenvolvida em nodejs com o intuito de enviar mensagens usando o bot do discord.",
     "main": "index.js",
     "dependencies": {
-        "@discordjs/rest": "0.1.0-canary.0",
+        "@discordjs/builders": "^0.6.0",
+        "@discordjs/rest": "^0.1.0-canary.0",
         "@typeit/discord": "^4.0.10",
         "discord-api-types": "^0.23.1",
         "discord.js": "^13.1.0",
