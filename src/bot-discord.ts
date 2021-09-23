@@ -13,7 +13,7 @@ import {
   ReplyMessageCommnad,
   SendFileByChannel,
   SendMessageByChannel,
-} from './interfaces/index';
+} from './interfaces';
 
 import {
   OnCommand,

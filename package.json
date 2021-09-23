@@ -1,8 +1,8 @@
 {
-    "name": "bot-discord",
+    "name": "@claudiozh/bot-discord",
     "version": "1.0.0",
     "description": "Aplicação desenvolvida em nodejs com o intuito de enviar mensagens usando o bot do discord.",
-    "main": "./dist/index.js",
+    "main": "dist/index.js",
     "dependencies": {
         "@discordjs/builders": "^0.6.0",
         "@discordjs/rest": "^0.1.0-canary.0",
@@ -38,9 +38,9 @@
         "type": "git",
         "url": "git+https://github.com/claudiozh/bot-discord.git"
     },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
+    "keywords": ["discord", "bot-discord", "bot", "messsage discord"],
+    "author": "claudiozh <claudiorodrigozh@gmail.com>",
+    "license": "MIT",
     "bugs": {
         "url": "https://github.com/claudiozh/bot-discord/issues"
     },
