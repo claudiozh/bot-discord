@@ -22,7 +22,7 @@ import {
   OnMessageUpdateType,
 } from './types';
 
-export default class AppDiscord {
+export default class BotDiscord {
   private client: Client;
 
   private tokenBot: string;
@@ -93,7 +93,7 @@ export default class AppDiscord {
     }
   }
 
-  async sendFileByChannel(params: SendFileByChannel): Promise<Message|null> {
+  async sendFileByChannel(params: SendFileByChannel): Promise<Message | null> {
     try {
       const { channelId, pathFile } = params;
       const channel = this.getChannelById(channelId);
