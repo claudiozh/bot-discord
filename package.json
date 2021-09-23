@@ -2,7 +2,7 @@
     "name": "bot-discord",
     "version": "1.0.0",
     "description": "Aplicação desenvolvida em nodejs com o intuito de enviar mensagens usando o bot do discord.",
-    "main": "index.js",
+    "main": "./dist/index.js",
     "dependencies": {
         "@discordjs/builders": "^0.6.0",
         "@discordjs/rest": "^0.1.0-canary.0",
